@@ -14,7 +14,7 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3 # ✅ Fetch the repo so that backend/frontend exist!
+        uses: actions/checkout@v3
 
       - name: Show Folder Structure (Debugging)
         run: ls -R
@@ -22,17 +22,17 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 20
           cache: "npm"
 
       - name: Install Backend Dependencies
         run: |
-          cd backend   # ✅ Ensure we're in the right directory
+          cd backend   
           npm install
 
       - name: Install Frontend Dependencies
         run: |
-          cd frontend  # ✅ Ensure we're in the right directory
+          cd frontend  
           npm install
 
       - name: Build Frontend
@@ -49,4 +49,4 @@ jobs:
           npm run lint
 
       - name: Deploy to Render (Optional)
-        run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }} # Replace with your Render deploy hook
+        run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
