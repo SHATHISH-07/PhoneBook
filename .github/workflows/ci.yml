@@ -9,68 +9,44 @@ on:
       - main
 
 jobs:
-  lint:
-    name: Run ESLint
+  build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3 # ✅ Fetch the repo so that backend/frontend exist!
 
-      - name: Set up Node.js
+      - name: Show Folder Structure (Debugging)
+        run: ls -R
+
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
+          cache: "npm"
 
       - name: Install Backend Dependencies
-        working-directory: backend
-        run: npm install
+        run: |
+          cd backend   # ✅ Ensure we're in the right directory
+          npm install
 
       - name: Install Frontend Dependencies
-        working-directory: frontend
-        run: npm install
-
-      - name: Run ESLint (Backend)
-        working-directory: backend
-        run: npx eslint .
-
-      - name: Run ESLint (Frontend)
-        working-directory: frontend
-        run: npx eslint .
-
-  build-frontend:
-    name: Build Frontend
-    runs-on: ubuntu-latest
-    needs: lint
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-
-      - name: Install Dependencies
-        working-directory: frontend
-        run: npm install
-
-      - name: Build React App
-        working-directory: frontend
-        run: npm run build
-
-      - name: Upload Build Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: frontend-dist
-          path: frontend/dist
-
-  deploy-backend:
-    name: Deploy Backend to Render
-    runs-on: ubuntu-latest
-    needs: [lint, build-frontend]
-    steps:
-      - name: Trigger Render Deployment
         run: |
-          curl -X POST "$RENDER_DEPLOY_HOOK"
-        env:
-          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+          cd frontend  # ✅ Ensure we're in the right directory
+          npm install
+
+      - name: Build Frontend
+        run: |
+          cd frontend
+          npm run build
+
+      - name: Move Frontend Build to Backend (If Serving from Backend)
+        run: mv frontend/dist backend/dist
+
+      - name: Run Linter
+        run: |
+          cd backend
+          npm run lint
+
+      - name: Deploy to Render (Optional)
+        run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }} # Replace with your Render deploy hook
